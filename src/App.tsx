@@ -1,24 +1,55 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState, ChangeEvent } from 'react';
 import './App.css';
+import { socket } from './utils/socket';
 
 function App() {
+
+  const [connected, setConnected] = useState<boolean>(false);
+  const [room, setRoom] = useState<string>('');
+  const [nickname, setNickname] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
+
+  const onRoomChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setRoom(value);
+  }
+
+  const onJoinButtonHandler = () => {
+    socket.emit('join', room);
+    setConnected(true);
+  }
+
+  let effectFlag = true;
+  useEffect(() => {
+
+    if (effectFlag) {
+      effectFlag = false;
+      return;
+    }
+
+    const onConnect = () => {
+      console.log(socket.id + ' Socket Connected!! ');
+    }
+
+    const onDisconnect = () => {
+      console.log(' Socket Disconnected!! ');
+    }
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+
+  }, [])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      {!connected ? (
+      <div>
+        <input value={room} onChange={onRoomChangeHandler} />
+        <button onClick={onJoinButtonHandler}>조인</button>
+      </div>
+      ) : (
+        <div></div>
+      )}
     </div>
   );
 }
